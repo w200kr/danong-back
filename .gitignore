@@ -1,0 +1,22 @@
+*.pyc
+__pycache__
+# myvenv
+db.sqlite3
+.DS_Store
+# *.swp
+# logs/
+# temp/
+# .env
+# .idea
+static/
+# tooravel/settings/local.py
+# price/*.json
+# ~
+
+# Elastic Beanstalk Files
+# .elasticbeanstalk/*
+# !.elasticbeanstalk/*.cfg.yml
+# !.elasticbeanstalk/*.global.yml
+
+.ipynb_checkpoints/
+*.ipynb
