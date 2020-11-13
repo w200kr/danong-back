@@ -20,3 +20,4 @@ static/
 
 .ipynb_checkpoints/
 *.ipynb
+notebook/
