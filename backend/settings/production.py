@@ -26,6 +26,10 @@ DATABASES = {
         'PORT': 3306,
         'USER': "asin",
         'PASSWORD': "#|Z:#8]sT6NQF#E2=dIWk-.48ghLe!9=",
-        'OPTIONS': {'charset': 'utf8mb4'},
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            # 'sql_mode': 'traditional',
+            'charset': 'utf8mb4'
+        },
     }
 }
