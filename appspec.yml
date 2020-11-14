@@ -9,9 +9,9 @@ hooks:
   #     timeout: 6000
   #     runas: root
   AfterInstall:
-    - location: backend/scripts/install_dependencies.sh
+    - location: backend/scripts/install_dependencies
       timeout: 6000
       runas: root
-    - location: backend/scripts/django_commands.sh
+    - location: backend/scripts/django_commands
       timeout: 6000
       runas: bitnami
