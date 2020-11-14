@@ -21,7 +21,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': "danong-db",
-        'HOST': "http://ls-5db51d29d29b23f6ec09ad79b01329c88317ebff.ckt4xrz0zrhs.ap-northeast-2.rds.amazonaws.com",
+        'HOST': "ls-5db51d29d29b23f6ec09ad79b01329c88317ebff.ckt4xrz0zrhs.ap-northeast-2.rds.amazonaws.com",
         'PORT': 3306,
         'USER': "asin",
         'PASSWORD': "#|Z:#8]sT6NQF#E2=dIWk-.48ghLe!9=",
