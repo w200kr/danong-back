@@ -3,15 +3,15 @@ os: linux
 files:
   - source: /
     destination: /home/bitnami/backend/
-# hooks:
-#   BeforeInstall:
-#     - location: scripts/install_dependencies
-#       timeout: 300
-#       runas: root
-#     - location: scripts/start_server
-#       timeout: 300
-#       runas: root
-#   ApplicationStop:
-#     - location: scripts/stop_server
-#       timeout: 300
-#       runas: root
+hooks:
+  # BeforeInstall:
+  #   - location: backend/scripts/clean_instance.sh
+  #     timeout: 6000
+  #     runas: root
+  AfterInstall:
+    - location: backend/scripts/install_dependencies.sh
+      timeout: 6000
+      runas: root
+    - location: backend/scripts/django_commands.sh
+      timeout: 6000
+      runas: bitnami
