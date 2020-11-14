@@ -2,4 +2,4 @@
 
 cd /home/bitnami/backend
 # sudo pip install --upgrade pip
-sudo pip install -r ./requirements.txts
+sudo /opt/bitnami/python/bin/pip install -r ./requirements.txts
