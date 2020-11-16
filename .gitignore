@@ -9,6 +9,7 @@ db.sqlite3
 # .env
 # .idea
 static/
+media/
 # tooravel/settings/local.py
 # price/*.json
 # ~
