@@ -3,10 +3,10 @@
 from rest_framework import serializers
 # from rest_framework.authtoken.serializers import AuthTokenSerializer
 
-# from django.contrib.auth.models import User
+from django.contrib.auth.models import User
 from api.models import SmallCategory, Profile, Product, ProductImage, ProductOption, Purchase, Review
 
-# from IPython import embed
+from IPython import embed
 
 # import datetime, copy
 
@@ -35,13 +35,34 @@ from api.models import SmallCategory, Profile, Product, ProductImage, ProductOpt
 #     tel = serializers.CharField(source='user.tel', read_only=True)
 #     comment = serializers.CharField(source='user.comment', read_only=True)
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
 
 class CategoryListSerializer(serializers.ModelSerializer):
     class Meta:
         model = SmallCategory
         fields = '__all__'
 
-class ProductAddSerializer(serializers.ModelSerializer):
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = '__all__'
+
+class ProductOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductOption
+        fields = '__all__'
+
+class ProductListSerializer(serializers.ModelSerializer):
+    seller = UserProfileSerializer()
+    # seller = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), default=User.objects.first())
+    images = ProductImageSerializer(source='productimage_set', many=True, required=False)
+    options = ProductOptionSerializer(source='productoption_set', many=True, required=False)
+
     class Meta:
         model = Product
         fields = '__all__'

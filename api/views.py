@@ -9,11 +9,13 @@
 # from rest_framework.response import Response
 # from rest_framework.permissions import IsAuthenticated
 # from rest_framework import mixins, generics, viewsets
-from rest_framework import mixins, generics
+from rest_framework import mixins, generics, status
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser
+# from rest_framework.exceptions import APIException
 
 
-from api.serializers import CategoryListSerializer
+from api.serializers import CategoryListSerializer, ProductListSerializer
 
 # from rest_framework.authentication import TokenAuthentication
 
@@ -23,6 +25,8 @@ from api.models import SmallCategory, Profile, Product, ProductImage, ProductOpt
 
 # from rest_framework.authtoken.views import ObtainAuthToken
 # from rest_framework.authtoken.models import Token
+
+from api.crawls import Crawler
 
 from IPython import embed
 
@@ -46,6 +50,10 @@ import json
 #         obj.pop('password')
 
 #         return Response(obj)
+
+# class KakaoLogin():
+#   pass
+
 
 # class SignUp(mixins.CreateModelMixin, generics.GenericAPIView):
 #     queryset = Member.objects.all()
@@ -78,7 +86,7 @@ class CategoryDetph(mixins.ListModelMixin, BaseAPIView):
             {
                 'value': value, 
                 'label': label, 
-                'sub_categories':list(filter(lambda category: category['large_category']==value, all_categories))
+                'sub_categories': list(filter(lambda category: category['large_category']==value, all_categories))
             } for index, (value, label) in enumerate(SmallCategory.CATEGORY_CHOICES)
         ]
 
@@ -92,7 +100,7 @@ class NaverMapGeocode(BaseAPIView):
             'X-NCP-APIGW-API-KEY': 'G8nc8zH5sP4pg8ZVMYETnLoReXCfx04vgNKvwsPE',
         }
         if not 'address' in kwargs:
-            return Response(status_code=404)
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         url = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query="+kwargs['address']
         # url = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=망우로12길 49-1"
@@ -103,10 +111,27 @@ class NaverMapGeocode(BaseAPIView):
 
 class NongsaroAddresses(BaseAPIView):
     def get(self, request, *args, **kwargs):
+        crawler = Crawler()
 
+        try:
+            response = crawler.lookup_nongsaro(kwargs['address'])
+        except Exception as e:
+            # raise e
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        finally:
+            crawler.driver.close()
 
+        return Response(response)
 
+class ProductList(mixins.ListModelMixin,
+                    mixins.CreateModelMixin, 
+                    BaseAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductListSerializer
+    parser_class = (MultiPartParser,)
 
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
-        return Response()
-
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
