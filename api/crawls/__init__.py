@@ -10,7 +10,11 @@ import requests
 import random
 import os
 
+mac_driver_path = os.path.dirname(os.path.abspath(__file__))+"/chromedriver_mac"
+linux_driver_path = os.path.dirname(os.path.abspath(__file__))+"/chromedriver_linux"
+
 base_url = 'http://www.nongsaro.go.kr/portal/ps/psa/psab/psabe/openApiSoilVrifyLst.ps?menuId=PS03329'
+
 
 class Crawler(object):
     """docstring for Crawler"""
@@ -29,7 +33,11 @@ class Crawler(object):
         options.add_argument('--no-sandbox')
         options.add_argument('--ignore-certificate-errors')
 
-        self.driver = webdriver.Chrome(os.path.dirname(os.path.abspath(__file__))+"/chromedriver", options=options)
+        try:
+            self.driver = webdriver.Chrome(mac_driver_path, options=options)
+        except Exception as e:
+            self.driver = webdriver.Chrome(linux_driver_path, options=options)
+            # raise e
         self.driver.get(base_url)
 
         self.sido_select = Select(self.driver.find_element_by_id('siDoLst'))
