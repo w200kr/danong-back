@@ -59,6 +59,9 @@ class Profile(models.Model):
         ('B', '구매자'),
     )
 
+    # JOB_POSITION_CHOICES = (
+    # )
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=False, blank=False)
     category = models.CharField(max_length=5, choices=CATEGORY_CHOICES, null=False, blank=False, default='B')
     # image_url = models.CharField(max_length=1024, null=True, blank=True)
@@ -68,12 +71,15 @@ class Profile(models.Model):
     address = models.CharField(max_length=100, null=False, blank=False)
     address_detail = models.CharField(max_length=100, null=False, blank=False)
 
-    # tel = models.CharField(max_length=20, null=False, blank=False)
-    # gender = models.CharField(max_length=255, null=False, blank=True)
+    tel = models.CharField(max_length=20, null=False, blank=False)
     career = models.TextField(null=True, blank=True)
 
-    wishlist = models.ManyToManyField('Product', blank=True)
+    thumbnail = models.ImageField(null=True, blank=True)
+    seller_name = models.CharField(max_length=20, null=True, blank=True)
+    job_position = models.CharField(max_length=20, null=True, blank=True)
+    main_crops = models.ForeignKey('SmallCategory', on_delete=models.SET_NULL, null=True, blank=True)
 
+    wishlist = models.ManyToManyField('Product', blank=True)
 
     @property
     def email(self):
@@ -135,6 +141,9 @@ Product
     lat : 위도, varchar(50), not null 
     lng : 경도, varchar(50), not null 
 """
+def user_directory_path(instance, filename):
+    return 'user_{}/{}'.format(instance.name, filename)
+
 class Product(models.Model):
     seller = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
     category = models.ForeignKey('SmallCategory', on_delete=models.SET_NULL, null=True, blank=False)
@@ -142,9 +151,9 @@ class Product(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False)
     address = models.CharField(max_length=200, null=False, blank=False)
     price = models.PositiveIntegerField(null=False, blank=False)
-    view_count = models.PositiveSmallIntegerField(null=False, blank=False)
+    view_count = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
     description = models.CharField(max_length=100, null=False, blank=False)
-    image = models.ImageField(upload_to="")
+    thumbnail = models.ImageField(upload_to="")
     is_hide = models.BooleanField(null=False, blank=False, default=True)
 
     lat = models.FloatField(null=False, blank=False)
