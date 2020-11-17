@@ -8,6 +8,11 @@ from api import views
 # detail : Retrieve Update Delete
 
 urlpatterns = [
+    path('signup/', views.SignUp.as_view(), name='signup'),
+    path('login/', views.Login.as_view(), name='login'),
+
+
+
     # path('v1/members/<int:pk>', views.MemberList.as_view(), name='member-list'),
     path('categories/depth/', views.CategoryDetph.as_view(), name='category-list'),
     path('navermap/geocode/<str:address>/', views.NaverMapGeocode.as_view(), name='navermap-geocode'),
