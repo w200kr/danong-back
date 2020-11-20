@@ -9,8 +9,9 @@ from api import views
 
 urlpatterns = [
     path('signup/', views.SignUp.as_view(), name='signup'),
+    # path('signup/kakao/', views.KakaoSignUp.as_view(), name='kakao-signup'),
     path('login/', views.Login.as_view(), name='login'),
-
+    path('login/kakao/', views.KakaoLogin.as_view(), name='kakao-login'),
 
 
     # path('v1/members/<int:pk>', views.MemberList.as_view(), name='member-list'),
@@ -20,5 +21,7 @@ urlpatterns = [
 
 
     path('products/', views.ProductList.as_view(), name='product-list'),
-    # path('members/<int:pk>', views.MemberList.as_view(), name='member-list'),
+    path('products/dib/', views.product_dib, name='product-dib'),
+
+    path('profiles/<int:pk>/', views.ProfileDetail.as_view(), name='profile-detail'),
 ]

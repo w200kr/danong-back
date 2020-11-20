@@ -1,22 +1,61 @@
 # from django.contrib.auth import authenticate
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import User
+from django.conf import settings
+from django.db.models import Avg
+
 
 from rest_framework import serializers
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 
-from django.contrib.auth.models import User
 from api.models import SmallCategory, Profile, Product, ProductImage, ProductOption, Purchase, Review
 
 from IPython import embed
 
 # import datetime, copy
 
+class BaseSerializer(serializers.Serializer):
+    def get_request_user(self):
+        user = None
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
+        if settings.DEBUG and user.is_anonymous:
+            user = User.objects.get(username='asin')
+        return user
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer, BaseSerializer):
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+    profile_id = serializers.IntegerField(source='user.profile.id', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+    password = serializers.CharField(source='user.password', required=False, write_only=True)
+    thumbnail = serializers.ImageField(required=False, allow_empty_file=True, use_url=False, write_only=True)
+    # thumbnail_url = serializers.SerializerMethodField(required=False, allow_empty_file=True, use_url=False, write_only=True)
+    # large_category = serializers.SerializerMethodField(required=False, read_only=True)
+    large_category = serializers.CharField(source='main_crops.large_category', required=False, read_only=True)
+    thumbnail_url = serializers.SerializerMethodField(required=False, read_only=True)
+
     class Meta:
         model = Profile
-        fields = '__all__'
+        exclude = ['user', 'wishlist', 'id']
+        # fields = '__all__'
 
-class SignUpSerializer(serializers.ModelSerializer):
+    # def get_large_category(self, profile):
+
+    #     return 
+
+    def get_thumbnail_url(self, profile):
+        try:
+            url = self.context['request'].build_absolute_uri(profile.thumbnail.url)
+        except Exception as e:
+            url = ''
+        # if profile.thumbnail.url:
+        #     request.get_full_path()
+        # url = 
+        return url
+
+
+class SignUpSerializer(serializers.ModelSerializer, BaseSerializer):
     category = serializers.CharField(source='profile.category')
     name = serializers.CharField(source='profile.name')
     tel = serializers.CharField(source='profile.tel')
@@ -39,9 +78,9 @@ class SignUpSerializer(serializers.ModelSerializer):
         # )
         user_profile = Profile.objects.create(
             user=user,
-            category=validated_data['profile']['category'],
-            name=validated_data['profile']['name'],
-            tel=validated_data['profile']['tel'],
+            category=validated_data.get('profile',{}).get('category', Profile.BUYER),
+            name=validated_data.get('profile',{}).get('name', ''),
+            tel=validated_data.get('profile',{}).get('tel', ''),
         )
 
         user.set_password(validated_data['password'])
@@ -49,7 +88,25 @@ class SignUpSerializer(serializers.ModelSerializer):
         user_profile.save()
         return user
 
+class KakaoSignUpSerializer(SignUpSerializer):
+    kakao_id = serializers.CharField(source='profile.kakao_id')
+    def create(self, validated_data):
+        # kakao_id, nickname, tel
+        user = super().create({
+            'username': 'kakao_'+validated_data.get['kakao_id'],
+            'password': User.objects.make_random_password(30),
+            'email': validated_data['email'],
+            'profile': {
+                'category': 'B',
+                'name': validated_data.get('nickname', ''),
+                'tel': validated_data.get('tel', ''),
+            }
+        })
+        return user
+
 class LoginSerializer(AuthTokenSerializer):
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+    profile_id = serializers.IntegerField(source='user.profile.id', read_only=True)
     category = serializers.CharField(source='user.profile.category', read_only=True)
     name = serializers.CharField(source='user.profile.name', read_only=True)
     zipcode = serializers.CharField(source='user.profile.zipcode', read_only=True)
@@ -62,41 +119,102 @@ class LoginSerializer(AuthTokenSerializer):
     job_position = serializers.CharField(source='user.profile.job_position', read_only=True)
     main_crops = serializers.CharField(source='user.profile.main_crops', read_only=True)
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class KakaoLoginSerializer(LoginSerializer):
+    username = None
+    password = None
+    kakao_id = serializers.CharField(source='user.profile.kakao_id')
+    name = serializers.CharField(source='user.profile.name', read_only=True)
+    tel = serializers.CharField(source='profile.tel', read_only=True)
+
+    def validate(self, attrs):
+        kakao_id = attrs.get('user', {}).get('profile', {}).get('kakao_id', None)
+        # if kakao_id:
+        #     msg = _('Must include "kakao_id".')
+        #     raise serializers.ValidationError(msg, code='authorization')
+
+        matched_profile = Profile.objects.filter(kakao_id=kakao_id).first()
+        if matched_profile:
+            user = matched_profile.user
+            attrs['user'] = user
+        # else:
+        #     msg = _('Unable to log in with provided credentials.')
+        #     raise serializers.ValidationError(msg, code='authorization')
+
+        # attrs['user'] = user
+        return attrs
+
+
+class UserProfileDetailSerializer(serializers.ModelSerializer, BaseSerializer):
+    password = serializers.CharField(write_only=True,)
+    # thumbnail_url = 
+
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['id', 'username', 'password', 'email', 'date_joined']
 
+    def create(self, validated_data):
+        user = super().create(validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
-class CategoryListSerializer(serializers.ModelSerializer):
+    def update(self, instance, validated_data):
+        user = super().update(instance, validated_data)
+        try:
+            user.set_password(validated_data['password'])
+            user.save()
+        except KeyError:
+            pass
+        return user
+
+class CategoryListSerializer(serializers.ModelSerializer, BaseSerializer):
     class Meta:
         model = SmallCategory
         fields = '__all__'
 
-
-class ProductImageSerializer(serializers.ModelSerializer):
+class ProductImageSerializer(serializers.ModelSerializer, BaseSerializer):
     class Meta:
         model = ProductImage
         fields = '__all__'
 
-class ProductOptionSerializer(serializers.ModelSerializer):
+class ProductOptionSerializer(serializers.ModelSerializer, BaseSerializer):
     class Meta:
         model = ProductOption
         fields = '__all__'
 
-class ProductListSerializer(serializers.ModelSerializer):
-    seller = UserProfileSerializer(default=serializers.CurrentUserDefault())
+class ProductListSerializer(serializers.ModelSerializer, BaseSerializer):
+    seller = UserProfileDetailSerializer(default=serializers.CurrentUserDefault())
 
-    # seller = UserProfileSerializer()
+    # seller = UserProfileDetailSerializer()
     # seller = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), default=User.objects.first())
+    # thumbnail = serializers.SerializerMethodField()
+    # thumbnail_url = serializers.SerializerMethodField()
     images = ProductImageSerializer(source='productimage_set', many=True, required=False)
     options = ProductOptionSerializer(source='productoption_set', many=True, required=False)
+
+    is_dibbed = serializers.SerializerMethodField()
+
+    rating_avg = serializers.SerializerMethodField()
+    review_num = serializers.IntegerField(source='review_set.count', read_only=True)
+    # review_num = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = '__all__'
 
-class ProductSearchSerializer(serializers.ModelSerializer):
+    def get_is_dibbed(self, product):
+        user = self.get_request_user()
+        return user.profile.wishlist.filter(id=product.id).exists()
+
+    def get_rating_avg(self, product):
+        return product.review_set.all().aggregate(Avg('rating')).get('rating__avg', 0)
+
+
+    # def get_thumbnail_url(self, product):
+    #     return product.thumbnail.url
+
+
+class ProductSearchSerializer(serializers.ModelSerializer, BaseSerializer):
     class Meta:
         model = Product
         fields = '__all__'
