@@ -1,6 +1,10 @@
 from django.db import models
-
 from django.contrib.auth.models import User
+
+from imagekit.models import ProcessedImageField
+from imagekit.processors import Thumbnail
+
+from datetime import datetime
 
 """
 
@@ -53,10 +57,17 @@ Wish
     user_id : 이용자 번호, integer, Foreign key, NOT NULL, 
     product_ id: 상품 번호, integer, Foreign key, NOT NULL, 
 """
+def user_directory_path(instance, filename):
+    dt = datetime.now()
+    dt_string = dt.isoformat().split(".")[0]
+    return f'{instance.user.username}/{dt_string}/{filename}'
+
 class Profile(models.Model):
+    SELLER = 'S'
+    BUYER = 'B'
     CATEGORY_CHOICES = (
-        ('S', '판매자'),
-        ('B', '구매자'),
+        (SELLER, '판매자'),
+        (BUYER, '구매자'),
     )
 
     # JOB_POSITION_CHOICES = (
@@ -67,17 +78,26 @@ class Profile(models.Model):
     # image_url = models.CharField(max_length=1024, null=True, blank=True)
     name = models.CharField(max_length=20, null=False, blank=False)
 
-    zipcode = models.CharField(max_length=10, null=False, blank=False)
-    address = models.CharField(max_length=100, null=False, blank=False)
-    address_detail = models.CharField(max_length=100, null=False, blank=False)
+    zipcode = models.CharField(max_length=10, null=True, blank=True, default='')
+    address = models.CharField(max_length=100, null=True, blank=True, default='')
+    address_detail = models.CharField(max_length=100, null=True, blank=True, default='')
 
-    tel = models.CharField(max_length=20, null=False, blank=False)
+    tel = models.CharField(max_length=20, null=False, blank=False, default='')
     career = models.TextField(null=True, blank=True)
 
-    thumbnail = models.ImageField(null=True, blank=True)
+    thumbnail = ProcessedImageField(
+        upload_to=user_directory_path,
+        processors=[Thumbnail(230, 230)], # 처리할 작업 목룍
+        format='JPEG',                    # 최종 저장 포맷
+        options={'quality': 70},
+        null=True,
+        blank=True,
+    )
     seller_name = models.CharField(max_length=20, null=True, blank=True)
     job_position = models.CharField(max_length=20, null=True, blank=True)
     main_crops = models.ForeignKey('SmallCategory', on_delete=models.SET_NULL, null=True, blank=True)
+
+    kakao_id = models.CharField(max_length=20, null=True, blank=True, unique=True)
 
     wishlist = models.ManyToManyField('Product', blank=True)
 
@@ -141,8 +161,8 @@ Product
     lat : 위도, varchar(50), not null 
     lng : 경도, varchar(50), not null 
 """
-def user_directory_path(instance, filename):
-    return 'user_{}/{}'.format(instance.name, filename)
+def product_directory_path(instance, filename):
+    return f'{instance.seller.username}/{instance.name}_{instance.updated}/{filename}'
 
 class Product(models.Model):
     seller = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
@@ -153,8 +173,15 @@ class Product(models.Model):
     price = models.PositiveIntegerField(null=False, blank=False)
     view_count = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
     description = models.CharField(max_length=100, null=False, blank=False)
-    thumbnail = models.ImageField(upload_to="")
-    is_hide = models.BooleanField(null=False, blank=False, default=True)
+    thumbnail = ProcessedImageField(
+        upload_to=user_directory_path,
+        processors=[Thumbnail(230, 230)], # 처리할 작업 목룍
+        format='JPEG',                    # 최종 저장 포맷
+        options={'quality': 70},
+        null=True,
+        blank=True,
+    )
+    is_hide = models.BooleanField(null=False, blank=False, default=False)
 
     lat = models.FloatField(null=False, blank=False)
     lng = models.FloatField(null=False, blank=False)
