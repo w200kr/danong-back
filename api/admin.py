@@ -20,6 +20,8 @@ class Profile(BaseAdmin):
     def get_username(self, obj):
         return obj.user.username
     get_username.short_description = 'ID'
+    filter_horizontal = ('wishlist',)
+    
 
 
 class ProductImageInline(GrappelliSortableHiddenMixin, admin.TabularInline):
