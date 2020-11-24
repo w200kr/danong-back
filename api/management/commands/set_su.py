@@ -25,6 +25,7 @@ class Command(BaseCommand):
             zipcode='02496',
             address='서울특별시 동대문구 망우로12길 49-1',
             address_detail='지하 B102호',
+            kakao_id='1520435556'   
         )
 
         asin.set_password('hawks2012')
