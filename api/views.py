@@ -43,8 +43,8 @@ def get_user(request):
     user = None
     if request and hasattr(request, "user"):
         user = request.user
-    if settings.DEBUG and user.is_anonymous:
-        user = User.objects.get(username='asin')
+    # if settings.DEBUG and user.is_anonymous:
+    #     user = User.objects.get(username='asin')
     return user
 
 class Login(ObtainAuthToken):
@@ -214,8 +214,10 @@ class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
 @api_view(['POST'])
 def product_dib(request):
     product_id = request.data.get('product_id', None)
-    if product_id:
-        profile = get_user(request).profile
+    user = get_user(request)
+
+    if product_id and user:
+        profile = user.profile
         if product_id in list(profile.wishlist.values_list('id', flat=True)):
             profile.wishlist.remove(product_id)
         else:
