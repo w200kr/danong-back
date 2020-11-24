@@ -156,8 +156,8 @@ class CategoryDetph(mixins.ListModelMixin, BaseAPIView):
 
 
 class NaverMapGeocode(BaseAPIView):
-    def get_serializer_class(self, request, *args, **kwargs):
-        pass
+    serializer_class = None
+
     def get(self, request, *args, **kwargs):
         headers = {
             'X-NCP-APIGW-API-KEY-ID': 'm11ogby6ag',
@@ -174,8 +174,8 @@ class NaverMapGeocode(BaseAPIView):
 
 
 class NongsaroAddresses(BaseAPIView):
-    def get_serializer_class(self, request, *args, **kwargs):
-        pass
+    serializer_class = None
+    
     def get(self, request, *args, **kwargs):
         crawler = Crawler()
 
