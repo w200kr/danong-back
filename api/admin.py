@@ -49,4 +49,4 @@ class Review(BaseAdmin):
 
 @admin.register(models.Purchase)
 class Purchase(BaseAdmin):
-    list_filter = ('buyer','product_option','qty','amount','payment_type','status','imp_id','merchant_id','created','updated',)
+    list_filter = ('buyer','product_option','qty','amount','payment_type','status','imp_id','merchant_uid','created','updated',)

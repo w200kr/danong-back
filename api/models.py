@@ -187,6 +187,8 @@ class Product(models.Model):
     lat = models.FloatField(null=False, blank=False)
     lng = models.FloatField(null=False, blank=False)
 
+    aptitude_table = models.TextField(null=True, blank=True)
+
     created = models.DateTimeField(auto_now_add=True, verbose_name='생성시간', null=False, blank=False)
     updated = models.DateTimeField(auto_now=True, verbose_name='수정시간', null=False, blank=False)
 
@@ -267,7 +269,7 @@ Purchase
     qty = 구매수량, integer, NOT NULL, 
     amount = 지불가격, integer, NOT NULL, 
     imp_id = 결제모듈의 해당 구매내역 id, varchar(255), null 
-    merchant_id = 결제번호, varchar(255), null
+    merchant_uid = 결제번호, varchar(255), null
     type = 결제 수단, varchar(20), not null,
     status = 결제 상태, varchar(30), not null, default='UNPAYMENT'
     created = 결제일시, DateTime, not null, default=datetime.now
@@ -302,7 +304,7 @@ class Purchase(models.Model):
     payment_type = models.CharField(verbose_name='결제수단', max_length=10, choices=PAYMENT_TYPE_CHOICE, null=False, blank=False)
     status = models.IntegerField(verbose_name='상태',choices=STATUS_CHOICE, null=False, blank=False, default=PENDING)
     imp_id = models.CharField(max_length=120, null=True, blank=True)
-    merchant_id = models.CharField(max_length=120, unique=True)
+    merchant_uid = models.CharField(max_length=120, unique=True)
 
     created = models.DateTimeField(auto_now_add=True, verbose_name='생성시간', null=False, blank=False)
     updated = models.DateTimeField(auto_now=True, verbose_name='수정시간', null=False, blank=False)

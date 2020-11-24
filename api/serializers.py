@@ -248,7 +248,6 @@ class ProductListSerializer(serializers.ModelSerializer, BaseSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
-        print(validated_data)
         obj = {**validated_data, 'seller': self.get_request_user()}  
         product = Product.objects.create(**obj)
         images_data = self.initial_data.getlist('images[]')
@@ -327,8 +326,8 @@ class SellerProfileSerializer(serializers.ModelSerializer, BaseSerializer):
 
 class ProductDetailSerializer(serializers.ModelSerializer, BaseSerializer):
     seller_profile = SellerProfileSerializer(source='seller.profile')
-    images = ProductImageSerializer(many=True, required=False)
-    options = ProductOptionSerializer(many=True, required=False)
+    images = ProductImageSerializer(source='productimage_set', many=True, required=False)
+    options = ProductOptionSerializer(source='productoption_set', many=True, required=False)
     reviews = ProductReviewSerializer(source='review_set', many=True, required=False)
     is_dibbed = serializers.SerializerMethodField()
     rating_avg = serializers.SerializerMethodField()
@@ -350,6 +349,7 @@ class ProductDetailSerializer(serializers.ModelSerializer, BaseSerializer):
 
 
 class PurchaseListSerializer(serializers.ModelSerializer, BaseSerializer):
+    buyer = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True, default=serializers.CurrentUserDefault())
     class Meta:
         model = Purchase
         fields = '__all__'
