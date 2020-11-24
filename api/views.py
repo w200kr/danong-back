@@ -216,6 +216,7 @@ def product_dib(request):
     product_id = request.data.get('product_id', None)
     user = get_user(request)
 
+
     if product_id and not user.is_anonymous:
         profile = user.profile
         if product_id in list(profile.wishlist.values_list('id', flat=True)):
@@ -225,7 +226,7 @@ def product_dib(request):
         profile.save()
 
         return Response({'status':'ok'}, status=status.HTTP_201_CREATED)
-    return Response({'status':'fail'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'status':'fail', 'product_id':product_id, 'user':json.dumps(user)}, status=status.HTTP_400_BAD_REQUEST)
 
 class ProfileDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Profile.objects.all()
