@@ -216,7 +216,7 @@ def product_dib(request):
     product_id = request.data.get('product_id', None)
     user = get_user(request)
 
-    if product_id and user:
+    if product_id and not user.is_anonymous:
         profile = user.profile
         if product_id in list(profile.wishlist.values_list('id', flat=True)):
             profile.wishlist.remove(product_id)
