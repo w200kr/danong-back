@@ -88,7 +88,6 @@ pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycparser==2.20
 Pygments==2.6.1
-pygraphviz==1.6
 PyJWT==1.7.1
 PyNaCl==1.4.0
 pyparsing==2.4.7
