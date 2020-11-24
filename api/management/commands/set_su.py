@@ -22,7 +22,7 @@ class Command(BaseCommand):
             user=asin,
             category='S',
             name='신석은',
-            zipcode='02496',
+            tel='92874497',
             address='서울특별시 동대문구 망우로12길 49-1',
             address_detail='지하 B102호',
             kakao_id='1520435556'   
