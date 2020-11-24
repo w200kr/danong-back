@@ -21,8 +21,8 @@ class BaseSerializer(serializers.Serializer):
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             user = request.user
-        if settings.DEBUG and user.is_anonymous:
-            user = User.objects.get(username='asin')
+        # if settings.DEBUG and user.is_anonymous:
+        #     user = User.objects.get(username='asin')
         return user
 
 class ProfileSerializer(serializers.ModelSerializer, BaseSerializer):
@@ -223,7 +223,10 @@ class ProductReviewSerializer(serializers.ModelSerializer, BaseSerializer):
 
     def get_is_mine(self, review):
         user = self.get_request_user()
-        return user == review.buyer
+        if user:
+            return user == review.buyer
+        else:
+            return None
     def get_created(self, review):
         return review.created.strftime('%Y.%m.%d')
 
@@ -266,7 +269,10 @@ class ProductListSerializer(serializers.ModelSerializer, BaseSerializer):
 
     def get_is_dibbed(self, product):
         user = self.get_request_user()
-        return user.profile.wishlist.filter(id=product.id).exists()
+        if user.is_anonymous:
+            return None
+        else:
+            return user.profile.wishlist.filter(id=product.id).exists()
 
     def get_rating_avg(self, product):
         rating_avg = product.review_set.all().aggregate(Avg('rating')).get('rating__avg', 0)
@@ -337,9 +343,13 @@ class ProductDetailSerializer(serializers.ModelSerializer, BaseSerializer):
         model = Product
         fields = '__all__'
 
+
     def get_is_dibbed(self, product):
         user = self.get_request_user()
-        return user.profile.wishlist.filter(id=product.id).exists()
+        if user.is_anonymous:
+            return None
+        else:
+            return user.profile.wishlist.filter(id=product.id).exists()
 
     def get_rating_avg(self, product):
         rating_avg = product.review_set.all().aggregate(Avg('rating')).get('rating__avg', 0)
