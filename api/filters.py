@@ -32,7 +32,7 @@ class ProductFilter(django_filters.FilterSet):
     class Meta:
         model = Product
         fields = {
-            'category': ['exact'],
+            'category': ['in'],
             'price': ['lte', 'gte'],
             'lat': ['lte', 'gte'],
             'lng': ['lte', 'gte'],
