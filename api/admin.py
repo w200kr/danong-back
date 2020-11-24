@@ -24,17 +24,20 @@ class Profile(BaseAdmin):
     
 
 
-class ProductImageInline(GrappelliSortableHiddenMixin, admin.TabularInline):
+# class ProductImageInline(GrappelliSortableHiddenMixin, admin.TabularInline):
+class ProductImageInline(admin.TabularInline):
     model = models.ProductImage
-    sortable_field_name = 'order'
+    # sortable_field_name = 'order'
 
-class ProductOptionInline(GrappelliSortableHiddenMixin, admin.TabularInline):
+# class ProductOptionInline(GrappelliSortableHiddenMixin, admin.TabularInline):
+class ProductOptionInline(admin.TabularInline):
     model = models.ProductOption
-    sortable_field_name = 'order'
+    # sortable_field_name = 'order'
 
-class ReviewInline(GrappelliSortableHiddenMixin, admin.TabularInline):
+# class ReviewInline(GrappelliSortableHiddenMixin, admin.TabularInline):
+class ReviewInline(admin.TabularInline):
     model = models.Review
-    sortable_field_name = 'order'
+    # sortable_field_name = 'order'
 
 @admin.register(models.Product)
 class Product(BaseAdmin):
