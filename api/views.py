@@ -225,14 +225,10 @@ def product_dib(request):
         return Response({'status':'ok'}, status=status.HTTP_201_CREATED)
     return Response({'status':'fail'}, status=status.HTTP_400_BAD_REQUEST)
 
-class ProfileDetail(generics.RetrieveUpdateDestroyAPIView, 
-                    BaseAPIView):
+class ProfileDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     parser_class = (MultiPartParser,)
-
-    def update(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
 
 
 class ReviewList(mixins.ListModelMixin,
