@@ -155,39 +155,35 @@ class CategoryDetph(mixins.ListModelMixin, BaseAPIView):
         return Response(category_depth)
 
 
-class NaverMapGeocode(BaseAPIView):
-    serializer_class = None
+@api_view(['GET'])
+def navermap_geocode(request, *args, **kwargs):
+    headers = {
+        'X-NCP-APIGW-API-KEY-ID': 'm11ogby6ag',
+        'X-NCP-APIGW-API-KEY': 'G8nc8zH5sP4pg8ZVMYETnLoReXCfx04vgNKvwsPE',
+    }
+    if not 'address' in kwargs:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
-    def get(self, request, *args, **kwargs):
-        headers = {
-            'X-NCP-APIGW-API-KEY-ID': 'm11ogby6ag',
-            'X-NCP-APIGW-API-KEY': 'G8nc8zH5sP4pg8ZVMYETnLoReXCfx04vgNKvwsPE',
-        }
-        if not 'address' in kwargs:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+    url = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query="+kwargs.get('address', '')
+    # url = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=망우로12길 49-1"
+    response = requests.get(url, headers=headers)
 
-        url = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query="+kwargs.get('address', '')
-        # url = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=망우로12길 49-1"
-        response = requests.get(url, headers=headers)
-
-        return Response(response.json())
+    return Response(response.json())
 
 
-class NongsaroAddresses(BaseAPIView):
-    serializer_class = None
-    
-    def get(self, request, *args, **kwargs):
-        crawler = Crawler()
+@api_view(['GET'])
+def nongsaro_addresses(request, *args, **kwargs):
+    crawler = Crawler()
 
-        try:
-            response = crawler.lookup_nongsaro(kwargs.get('address', ''))
-        except Exception as e:
-            # raise e
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        finally:
-            crawler.driver.close()
+    try:
+        response = crawler.lookup_nongsaro(kwargs.get('address', ''))
+    except Exception as e:
+        # raise e
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    finally:
+        crawler.driver.close()
 
-        return Response(response)
+    return Response(response)
 
 class ProductList(mixins.ListModelMixin,
                     mixins.CreateModelMixin, 
