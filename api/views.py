@@ -187,7 +187,7 @@ def nongsaro_addresses(request, *args, **kwargs):
 
 class ProductList(mixins.ListModelMixin,
                     mixins.CreateModelMixin, 
-                    BaseAPIView):
+                    generics.GenericAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductListSerializer
     # filter_backends = [filters.SearchFilter]
