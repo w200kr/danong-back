@@ -8,10 +8,11 @@ from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 
-from api.models import SmallCategory, Profile, Product, ProductImage, ProductOption, Purchase, Review
+from api.models import SmallCategory, Profile, Product, ProductImage, ProductOption, ProductQnA, Purchase, Review
 
 from IPython import embed
 
+import json
 # import datetime, copy
 
 class BaseSerializer(serializers.Serializer):
@@ -109,11 +110,13 @@ class LoginSerializer(AuthTokenSerializer):
     profile_id = serializers.IntegerField(source='user.profile.id', read_only=True)
     category = serializers.CharField(source='user.profile.category', read_only=True)
     name = serializers.CharField(source='user.profile.name', read_only=True)
-    zipcode = serializers.CharField(source='user.profile.zipcode', read_only=True)
+    # zipcode = serializers.CharField(source='user.profile.zipcode', read_only=True)
+    email = serializers.CharField(source='user.email', read_only=True)
     address = serializers.CharField(source='user.profile.address', read_only=True)
     address_detail = serializers.CharField(source='user.profile.address_detail', read_only=True)
     tel = serializers.CharField(source='user.profile.tel', read_only=True)
     career = serializers.CharField(source='user.profile.career', read_only=True)
+    comment = serializers.CharField(source='user.profile.comment', read_only=True)
     thumbnail = serializers.CharField(source='user.profile.thumbnail', read_only=True)
     seller_name = serializers.CharField(source='user.profile.seller_name', read_only=True)
     job_position = serializers.CharField(source='user.profile.job_position', read_only=True)
@@ -123,8 +126,8 @@ class KakaoLoginSerializer(LoginSerializer):
     username = None
     password = None
     kakao_id = serializers.CharField(source='user.profile.kakao_id')
-    name = serializers.CharField(source='user.profile.name', read_only=True)
-    tel = serializers.CharField(source='profile.tel', read_only=True)
+    # name = serializers.CharField(source='user.profile.name', read_only=True)
+    # tel = serializers.CharField(source='user.profile.tel', read_only=True)
 
     def validate(self, attrs):
         kakao_id = attrs.get('user', {}).get('profile', {}).get('kakao_id', None)
@@ -173,14 +176,56 @@ class CategoryListSerializer(serializers.ModelSerializer, BaseSerializer):
         fields = '__all__'
 
 class ProductImageSerializer(serializers.ModelSerializer, BaseSerializer):
+    image = serializers.ImageField(required=True, use_url=False, write_only=True)
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductImage
         fields = '__all__'
+
+    def get_image_url(self, productimag):
+        try:
+            url = self.context['request'].build_absolute_uri(productimag.image.url)
+        except Exception as e:
+            url = ''
+        #     request.get_full_path()
+        # url = 
+        return url
 
 class ProductOptionSerializer(serializers.ModelSerializer, BaseSerializer):
     class Meta:
         model = ProductOption
         fields = '__all__'
+
+class ProductQnASerializer(serializers.ModelSerializer, BaseSerializer):
+    class Meta:
+        model = ProductQnA
+        fields = '__all__'
+
+class ProductReviewSerializer(serializers.ModelSerializer, BaseSerializer):
+    buyer = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True, default=serializers.CurrentUserDefault())
+    buyer_name = serializers.CharField(source='buyer.profile.name', read_only=True)
+    buyer_thumbnail_url = serializers.SerializerMethodField(read_only=True)
+    is_mine = serializers.SerializerMethodField(read_only=True)
+    created = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+    def get_buyer_thumbnail_url(self, review):
+        try:
+            url = self.context['request'].build_absolute_uri(review.buyer.profile.thumbnail.url)
+        except Exception as e:
+            print(e)
+            url = ''
+        return url
+
+    def get_is_mine(self, review):
+        user = self.get_request_user()
+        return user == review.buyer
+    def get_created(self, review):
+        return review.created.strftime('%Y.%m.%d')
 
 class ProductListSerializer(serializers.ModelSerializer, BaseSerializer):
     seller = UserProfileDetailSerializer(default=serializers.CurrentUserDefault())
@@ -202,12 +247,31 @@ class ProductListSerializer(serializers.ModelSerializer, BaseSerializer):
         model = Product
         fields = '__all__'
 
+    def create(self, validated_data):
+        product = Product.objects.create(**validated_data)
+        images_data = self.initial_data.getlist('images[]')
+        images_rest_data = json.loads( self.initial_data.get('images_rest', '[]') )
+        options_data = json.loads( self.initial_data.get('options', '[]') )
+        # 
+        for index, image_data in enumerate(images_data):
+            ProductImage.objects.create(product=product, image=image_data, order=index, **images_rest_data[index])
+
+        for index, option_data in enumerate(options_data):
+            ProductOption.objects.create(product=product, **option_data, order=index)
+        return product
+
+    # def get_thumbnail(self, product):
+    #     return product.thumbnail.url or 'https://reactnativecode.com/wp-content/uploads/2018/02/Default_Image_Thumbnail.png'
+
     def get_is_dibbed(self, product):
         user = self.get_request_user()
         return user.profile.wishlist.filter(id=product.id).exists()
 
     def get_rating_avg(self, product):
-        return product.review_set.all().aggregate(Avg('rating')).get('rating__avg', 0)
+        rating_avg = product.review_set.all().aggregate(Avg('rating')).get('rating__avg', 0)
+        if rating_avg:
+            return round(rating_avg, 2)
+        return 0
 
 
     # def get_thumbnail_url(self, product):
@@ -217,4 +281,73 @@ class ProductListSerializer(serializers.ModelSerializer, BaseSerializer):
 class ProductSearchSerializer(serializers.ModelSerializer, BaseSerializer):
     class Meta:
         model = Product
+        fields = '__all__'
+
+
+class SellerProfileSerializer(serializers.ModelSerializer, BaseSerializer):
+    tel = serializers.SerializerMethodField(read_only=True)
+    career = serializers.CharField(read_only=True)
+    comment = serializers.CharField(read_only=True)
+    seller_name = serializers.CharField(read_only=True)
+    job_position = serializers.CharField(read_only=True)
+    main_crops = serializers.CharField(read_only=True)
+    # thumbnail_url =
+    thumbnail_url = serializers.SerializerMethodField(read_only=True)
+    rating_avg = serializers.SerializerMethodField()
+    review_num = serializers.SerializerMethodField()
+    product_num = serializers.IntegerField(source='user.product_set.count', read_only=True)
+
+    class Meta:
+        model = Profile
+        # fields = '__all__'
+        exclude = ('wishlist', 'user', 'kakao_id')
+
+    def get_tel(self, profile):
+        return f'{profile.tel[:3]}-{profile.tel[3:7]}-{profile.tel[7:11]}'
+
+    def get_thumbnail_url(self, profile):
+        try:
+            url = self.context['request'].build_absolute_uri(profile.thumbnail.url)
+        except Exception as e:
+            url = ''
+        #     request.get_full_path()
+        # url = 
+        return url
+
+    def get_rating_avg(self, profile):
+        rating_avg = Review.objects.filter(product__seller=profile.user).aggregate(Avg('rating')).get('rating__avg', 0) or 0
+        if rating_avg:
+            return round(rating_avg, 2)
+        return 0
+    def get_review_num(self, profile):
+        return Review.objects.filter(product__seller=profile.user).count()
+
+
+class ProductDetailSerializer(serializers.ModelSerializer, BaseSerializer):
+    seller_profile = SellerProfileSerializer(source='seller.profile')
+    images = ProductImageSerializer(many=True, required=False)
+    options = ProductOptionSerializer(many=True, required=False)
+    reviews = ProductReviewSerializer(source='review_set', many=True, required=False)
+    is_dibbed = serializers.SerializerMethodField()
+    rating_avg = serializers.SerializerMethodField()
+    review_num = serializers.IntegerField(source='review_set.count', read_only=True)
+
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+    def get_is_dibbed(self, product):
+        user = self.get_request_user()
+        return user.profile.wishlist.filter(id=product.id).exists()
+
+    def get_rating_avg(self, product):
+        rating_avg = product.review_set.all().aggregate(Avg('rating')).get('rating__avg', 0)
+        if rating_avg:
+            return round(rating_avg, 2)
+        return 0
+
+
+class PurchaseListSerializer(serializers.ModelSerializer, BaseSerializer):
+    class Meta:
+        model = Purchase
         fields = '__all__'

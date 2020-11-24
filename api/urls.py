@@ -21,7 +21,13 @@ urlpatterns = [
 
 
     path('products/', views.ProductList.as_view(), name='product-list'),
+    path('products/<int:pk>/', views.ProductDetail.as_view(), name='product-detail'),
     path('products/dib/', views.product_dib, name='product-dib'),
 
     path('profiles/<int:pk>/', views.ProfileDetail.as_view(), name='profile-detail'),
+
+    path('reviews/', views.ReviewList.as_view(), name='review-list'),
+    path('reviews/<int:pk>/', views.ReviewDetail.as_view(), name='review-detail'),
+
+    path('purchases/', views.PurchaseList.as_view(), name='purchase-list'),
 ]

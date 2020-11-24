@@ -78,12 +78,13 @@ class Profile(models.Model):
     # image_url = models.CharField(max_length=1024, null=True, blank=True)
     name = models.CharField(max_length=20, null=False, blank=False)
 
-    zipcode = models.CharField(max_length=10, null=True, blank=True, default='')
+    # zipcode = models.CharField(max_length=10, null=True, blank=True, default='')
     address = models.CharField(max_length=100, null=True, blank=True, default='')
     address_detail = models.CharField(max_length=100, null=True, blank=True, default='')
 
     tel = models.CharField(max_length=20, null=False, blank=False, default='')
     career = models.TextField(null=True, blank=True)
+    comment = models.TextField(null=True, blank=True)
 
     thumbnail = ProcessedImageField(
         upload_to=user_directory_path,
@@ -174,7 +175,7 @@ class Product(models.Model):
     view_count = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
     description = models.CharField(max_length=100, null=False, blank=False)
     thumbnail = ProcessedImageField(
-        upload_to=user_directory_path,
+        upload_to=product_directory_path,
         processors=[Thumbnail(230, 230)], # 처리할 작업 목룍
         format='JPEG',                    # 최종 저장 포맷
         options={'quality': 70},
@@ -197,16 +198,24 @@ class Product(models.Model):
         return f'{self.name}'
 
 
+def productimage_directory_path(instance, filename):
+    return f'{instance.product.seller.username}/{instance.product.name}_{instance.product.updated}/{filename}'
 
 class ProductImage(models.Model):
+    IMAGE_TYPE_CHOICE = (
+        ('top', '상단 대표 이미지'),
+        ('content', '상품 설명 이미지'),
+    )
+
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     order = models.PositiveSmallIntegerField(verbose_name='순서', null=False, blank=False)
-    image = models.ImageField(upload_to="")
+    image_type = models.CharField(max_length=10, choices=IMAGE_TYPE_CHOICE, null=False, blank=False)
+    image = models.ImageField(upload_to=productimage_directory_path)
 
     class Meta:
         verbose_name = '상품 이미지'
         verbose_name_plural = '상품 이미지 목록'
-        unique_together = ['product', 'order']
+        unique_together = ['product', 'image_type', 'order']
 
 
 """
@@ -231,7 +240,21 @@ class ProductOption(models.Model):
         unique_together = ['product', 'order']
 
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.product.name} - {self.volumn}'
+
+class ProductQnA(models.Model):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    order = models.PositiveSmallIntegerField(verbose_name='순서', null=False, blank=False)
+    question = models.CharField(verbose_name='질문', max_length=100, null=False, blank=False)
+    answer = models.CharField(verbose_name='대답', max_length=100, null=False, blank=False)
+
+    class Meta:
+        verbose_name = '상품 문답'
+        verbose_name_plural = '상품 문답 목록'
+        unique_together = ['product', 'order']
+
+    def __str__(self):
+        return f'{self.product.name} - {self.question[:10]}'
 
 
 

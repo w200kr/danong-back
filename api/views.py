@@ -25,7 +25,7 @@ from rest_framework.authtoken.models import Token
 from django_filters.rest_framework import DjangoFilterBackend
 # import django_filters.rest_framework
 
-from api.serializers import CategoryListSerializer, ProductListSerializer, SignUpSerializer, LoginSerializer, KakaoSignUpSerializer, KakaoLoginSerializer, UserProfileDetailSerializer, ProfileSerializer
+from api.serializers import CategoryListSerializer, ProductListSerializer, SignUpSerializer, LoginSerializer, KakaoSignUpSerializer, KakaoLoginSerializer, UserProfileDetailSerializer, ProfileSerializer, ProductDetailSerializer, ProductReviewSerializer, PurchaseListSerializer
 
 from api.models import SmallCategory, Profile, Product, ProductImage, ProductOption, Purchase, Review
 
@@ -203,6 +203,14 @@ class ProductList(mixins.ListModelMixin,
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
+class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductDetailSerializer
+    parser_class = (MultiPartParser,)
+
+    def update(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
 @api_view(['POST'])
 def product_dib(request):
     product_id = request.data.get('product_id', None)
@@ -225,3 +233,35 @@ class ProfileDetail(generics.RetrieveUpdateDestroyAPIView,
 
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
+
+
+class ReviewList(mixins.ListModelMixin,
+                    mixins.CreateModelMixin, 
+                    BaseAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ProductReviewSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ProductReviewSerializer
+
+
+
+class PurchaseList(mixins.ListModelMixin,
+                    mixins.CreateModelMixin, 
+                    BaseAPIView):
+    queryset = Purchase.objects.all()
+    serializer_class = PurchaseListSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
