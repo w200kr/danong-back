@@ -232,7 +232,7 @@ class ProfileDetail(generics.RetrieveUpdateDestroyAPIView,
     parser_class = (MultiPartParser,)
 
     def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
+        return self.update(request, *args, **kwargs)
 
 
 class ReviewList(mixins.ListModelMixin,
