@@ -248,7 +248,8 @@ class ProductListSerializer(serializers.ModelSerializer, BaseSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
-        product = Product.objects.create(**validated_data)
+        obj = {**validated_data, 'seller': self.get_request_user()}  
+        product = Product.objects.create(**obj)
         images_data = self.initial_data.getlist('images[]')
         images_rest_data = json.loads( self.initial_data.get('images_rest', '[]') )
         options_data = json.loads( self.initial_data.get('options', '[]') )
