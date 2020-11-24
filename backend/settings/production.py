@@ -1,6 +1,6 @@
 from backend.settings.base import *
 
-DEBUG = False
+DEBUG = True
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = False
