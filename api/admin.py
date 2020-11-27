@@ -41,6 +41,8 @@ class ReviewInline(admin.TabularInline):
 
 @admin.register(models.Product)
 class Product(BaseAdmin):
+    list_filter = ('seller', 'category', 'is_hide', 'created', 'updated')
+    list_display = ('seller', 'category', 'name', 'address', 'price', 'view_count', 'description', 'is_hide', 'created', 'updated')
     inlines = [ProductImageInline, ProductOptionInline, ReviewInline]
 
 @admin.register(models.Review)
@@ -50,3 +52,5 @@ class Review(BaseAdmin):
 @admin.register(models.Purchase)
 class Purchase(BaseAdmin):
     list_filter = ('buyer','product_option','qty','amount','payment_type','status','imp_id','merchant_uid','created','updated',)
+
+
