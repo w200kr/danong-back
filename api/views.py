@@ -66,46 +66,15 @@ class Login(ObtainAuthToken):
 class KakaoLogin(generics.GenericAPIView):
     serializer_class = KakaoLoginSerializer
     def post(self, request, *args, **kwargs):
-        response_data = {}
-        kakao_id = str(request.data.get('kakao_id',''))
-        name = str(request.data.get('name',''))
-        email = str(request.data.get('email',''))
-
         serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
 
-        matched_profile = Profile.objects.filter(kakao_id=kakao_id).first()
-        if matched_profile:
-            user = matched_profile.user
-            # response_data['status'] = 'ok'
-            # response_data['next_url'] = '/'
-            response_data['token'] = user.auth_token.key
-        else:
-            user = User.objects.create(
-                username='kakao_'+kakao_id,
-                email=email,
-            )
-            user_profile = Profile.objects.create(
-                user=user,
-                category=Profile.BUYER,
-                name=name,
-                tel='',
-                kakao_id=kakao_id,
-            )
-
-            user.set_password( User.objects.make_random_password(30) )
-            user.save()
-            user_profile.save()
-
-            serializer = self.serializer_class(data=request.data, context={'request': request})
-            serializer.is_valid(raise_exception=True)
-
-            # response_data['status'] = 'fail'
-            # response_data['next_url'] = reverse('kakao-signup')
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
 
         data = {
             **serializer.data,
-            **response_data,
+            'token': token.key
         }
 
         return Response(data)
@@ -117,16 +86,11 @@ class SignUp(mixins.CreateModelMixin, generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
-# class KakaoSignUp(generics.GenericAPIView):
-#     serializer_class = KakaoSignUpSerializer
-#     def post(self, request, *args, **kwargs):
-
-#         return 
-
 class BaseAPIView(generics.GenericAPIView):
-    if not settings.DEBUG:
-        authentication_classes = [TokenAuthentication]
+    # if not settings.DEBUG:
+    #     authentication_classes = [TokenAuthentication]
         # permission_classes = (IsAuthenticated,)
+    authentication_classes = [TokenAuthentication]
 
     def get_request_user(self):
         user = None
@@ -137,7 +101,7 @@ class BaseAPIView(generics.GenericAPIView):
             user = User.objects.get(username='asin')
         return user
 
-class CategoryDetph(mixins.ListModelMixin, BaseAPIView):
+class CategoryDetph(mixins.ListModelMixin, generics.GenericAPIView):
     queryset = SmallCategory.objects.all()
     serializer_class = CategoryListSerializer
 
