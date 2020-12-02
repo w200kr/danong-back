@@ -186,8 +186,8 @@ class Product(models.Model):
     )
     is_hide = models.BooleanField(null=False, blank=False, default=False)
 
-    free_shipping = models.BooleanField('무료 배송', null=False, blank=False, default=False)
-    same_day_shipping = models.BooleanField('당일 발송', null=False, blank=False, default=False)
+    free_shipping = models.BooleanField('택배거래', null=False, blank=False, default=False)
+    same_day_shipping = models.BooleanField('직거래', null=False, blank=False, default=False)
 
     natural = models.BooleanField('자연산', null=False, blank=False, default=False)
     low_cabon = models.BooleanField('저탄소', null=False, blank=False, default=False)
