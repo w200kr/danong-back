@@ -8,7 +8,7 @@ from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 
-from api.models import SmallCategory, Profile, Product, ProductImage, ProductOption, ProductQnA, Purchase, Review
+from api.models import SmallCategory, Profile, Product, ProductImage, ProductOption, ProductFaq, Purchase, Review
 
 from IPython import embed
 
@@ -211,9 +211,9 @@ class ProductOptionSerializer(serializers.ModelSerializer, BaseSerializer):
         model = ProductOption
         fields = '__all__'
 
-class ProductQnASerializer(serializers.ModelSerializer, BaseSerializer):
+class ProductFaqSerializer(serializers.ModelSerializer, BaseSerializer):
     class Meta:
-        model = ProductQnA
+        model = ProductFaq
         fields = '__all__'
 
 class ProductReviewSerializer(serializers.ModelSerializer, BaseSerializer):
@@ -248,6 +248,7 @@ class ProductListSerializer(serializers.ModelSerializer, BaseSerializer):
     seller = UserProfileDetailSerializer(default=serializers.CurrentUserDefault())
     images = ProductImageSerializer(source='productimage_set', many=True, required=False)
     options = ProductOptionSerializer(source='productoption_set', many=True, required=False)
+    faqs = ProductFaqSerializer(source='productfaq_set', many=True, required=False)
 
     is_dibbed = serializers.SerializerMethodField()
     rating_avg = serializers.SerializerMethodField()
@@ -263,12 +264,16 @@ class ProductListSerializer(serializers.ModelSerializer, BaseSerializer):
         images_data = self.initial_data.getlist('images[]')
         images_rest_data = json.loads( self.initial_data.get('images_rest', '[]') )
         options_data = json.loads( self.initial_data.get('options', '[]') )
+        faqs_data = json.loads( self.initial_data.get('faqs', '[]') )
         # 
         for index, image_data in enumerate(images_data):
             ProductImage.objects.create(product=product, image=image_data, order=index, **images_rest_data[index])
 
         for index, option_data in enumerate(options_data):
             ProductOption.objects.create(product=product, **option_data, order=index)
+
+        for index, faq_data in enumerate(faqs_data):
+            ProductFaq.objects.create(product=product, **faq_data, order=index)
         return product
 
     def get_is_dibbed(self, product):
@@ -329,6 +334,7 @@ class ProductDetailSerializer(serializers.ModelSerializer, BaseSerializer):
     seller_profile = SellerProfileSerializer(source='seller.profile')
     images = ProductImageSerializer(source='productimage_set', many=True, required=False)
     options = ProductOptionSerializer(source='productoption_set', many=True, required=False)
+    faqs = ProductFaqSerializer(source='productfaq_set', many=True, required=False)
     reviews = ProductReviewSerializer(source='review_set', many=True, required=False)
     is_dibbed = serializers.SerializerMethodField()
     rating_avg = serializers.SerializerMethodField()

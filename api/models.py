@@ -166,15 +166,17 @@ def product_directory_path(instance, filename):
     return f'{instance.seller.username}/{instance.name}_{instance.updated}/{filename}'
 
 class Product(models.Model):
-    seller = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
-    category = models.ForeignKey('SmallCategory', on_delete=models.SET_NULL, null=True, blank=False)
+    seller = models.ForeignKey(User, verbose_name='판매자', on_delete=models.CASCADE, null=False, blank=False)
+    category = models.ForeignKey('SmallCategory', verbose_name='상품 분류', on_delete=models.SET_NULL, null=True, blank=False)
     # category = models.CharField(max_length=100, choices=CATEGORY_CHOICES, null=False, blank=False)
-    name = models.CharField(max_length=100, null=False, blank=False)
-    address = models.CharField(max_length=200, null=False, blank=False)
-    price = models.PositiveIntegerField(null=False, blank=False)
-    view_count = models.PositiveSmallIntegerField(null=False, blank=False, default=0)
-    description = models.CharField(max_length=100, null=False, blank=False)
+    name = models.CharField('상품명', max_length=100, null=False, blank=False)
+    address = models.CharField('농지 주소', max_length=200, null=False, blank=False)
+    price = models.PositiveIntegerField('가격', null=False, blank=False)
+    view_count = models.PositiveSmallIntegerField('조회수', null=False, blank=False, default=0)
+    description = models.CharField('상품 설명', max_length=100, null=False, blank=False)
+    CS_contact = models.CharField('1대1 상담 url', max_length=100, null=False, blank=False)
     thumbnail = ProcessedImageField(
+        verbose_name='대표 섬네일',
         upload_to=product_directory_path,
         processors=[Thumbnail(230, 230)], # 처리할 작업 목룍
         format='JPEG',                    # 최종 저장 포맷
@@ -183,6 +185,15 @@ class Product(models.Model):
         blank=True,
     )
     is_hide = models.BooleanField(null=False, blank=False, default=False)
+
+    free_shipping = models.BooleanField('무료 배송', null=False, blank=False, default=False)
+    same_day_shipping = models.BooleanField('당일 발송', null=False, blank=False, default=False)
+
+    natural = models.BooleanField('자연산', null=False, blank=False, default=False)
+    low_cabon = models.BooleanField('저탄소', null=False, blank=False, default=False)
+    organic = models.BooleanField('유기농', null=False, blank=False, default=False)
+    low_pesticide = models.BooleanField('저농약', null=False, blank=False, default=False)
+    pesticide_free = models.BooleanField('무농약', null=False, blank=False, default=False)
 
     lat = models.FloatField(null=False, blank=False)
     lng = models.FloatField(null=False, blank=False)
@@ -219,6 +230,8 @@ class ProductImage(models.Model):
         verbose_name_plural = '상품 이미지 목록'
         unique_together = ['product', 'image_type', 'order']
 
+    def __str__(self):
+        return f'{self.product.name} 상품 이미지'
 
 """
 ProductOption
@@ -244,7 +257,7 @@ class ProductOption(models.Model):
     def __str__(self):
         return f'{self.product.name} - {self.volumn}'
 
-class ProductQnA(models.Model):
+class ProductFaq(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     order = models.PositiveSmallIntegerField(verbose_name='순서', null=False, blank=False)
     question = models.CharField(verbose_name='질문', max_length=100, null=False, blank=False)

@@ -34,16 +34,22 @@ class ProductOptionInline(admin.TabularInline):
     model = models.ProductOption
     # sortable_field_name = 'order'
 
+class ProductFaqInline(admin.TabularInline):
+    model = models.ProductFaq
+
 # class ReviewInline(GrappelliSortableHiddenMixin, admin.TabularInline):
 class ReviewInline(admin.TabularInline):
     model = models.Review
     # sortable_field_name = 'order'
 
+
 @admin.register(models.Product)
 class Product(BaseAdmin):
-    list_filter = ('seller', 'category', 'is_hide', 'created', 'updated')
+    list_filter = ('category', 'is_hide', 'created', 'updated')
     list_display = ('seller', 'category', 'name', 'address', 'price', 'view_count', 'description', 'is_hide', 'created', 'updated')
-    inlines = [ProductImageInline, ProductOptionInline, ReviewInline]
+    list_display_links = ('category', 'name', 'address',)
+    search_fields = ['seller__username', 'seller__email', 'seller__profile__name', 'seller__profile__tel', 'name']
+    inlines = [ProductImageInline, ProductOptionInline, ProductFaqInline, ReviewInline]
 
 @admin.register(models.Review)
 class Review(BaseAdmin):

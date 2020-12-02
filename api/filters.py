@@ -36,4 +36,12 @@ class ProductFilter(django_filters.FilterSet):
             'price': ['lte', 'gte'],
             'lat': ['lte', 'gte'],
             'lng': ['lte', 'gte'],
+
+            'free_shipping': ['exact'],
+            'same_day_shipping': ['exact'],
+            'natural': ['exact'],
+            'low_cabon': ['exact'],
+            'organic': ['exact'],
+            'low_pesticide': ['exact'],
+            'pesticide_free': ['exact'],
         }
