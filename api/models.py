@@ -174,7 +174,7 @@ class Product(models.Model):
     price = models.PositiveIntegerField('가격', null=False, blank=False)
     view_count = models.PositiveSmallIntegerField('조회수', null=False, blank=False, default=0)
     description = models.CharField('상품 설명', max_length=100, null=False, blank=False)
-    CS_contact = models.CharField('1대1 상담 url', max_length=100, null=False, blank=False)
+    CS_contact = models.CharField('1대1 상담 url', max_length=500, null=False, blank=False)
     thumbnail = ProcessedImageField(
         verbose_name='대표 섬네일',
         upload_to=product_directory_path,
