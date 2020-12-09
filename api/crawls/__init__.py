@@ -60,7 +60,7 @@ class Crawler(object):
         for index, option in enumerate(select.options):
             if text in option.text:
                 select.select_by_index(index)
-                self.wait_for_load()
+                # self.wait_for_load()
                 return 
 
     def select_by_random(self, select):
@@ -129,13 +129,36 @@ class Crawler(object):
         ri_text = self.get_value( self.find_obj(filtered_list, 'types', 'RI'), 'longName' )
         jibn_text = self.get_value( self.find_obj(filtered_list, 'types', 'LAND_NUMBER'), 'longName' )
 
-        self.select_by_text(self.sido_select, sido_text)
-        self.select_by_text(self.sigungu_select, sigungu_text)
-        self.select_by_text(self.townMyeonDong_select, townMyeonDong_text)
-        self.select_by_text(self.ri_select, ri_text)
-        self.select_by_text(self.jibn_select, jibn_text)
+        # self.select_by_text(self.sido_select, sido_text)
+        # self.select_by_text(self.sigungu_select, sigungu_text)
+        # self.select_by_text(self.townMyeonDong_select, townMyeonDong_text)
+        # self.select_by_text(self.ri_select, ri_text)
+        # self.select_by_text(self.jibn_select, jibn_text)
 
-        address = driver.find_element_by_xpath('//*[@id="jibun_div"]/div[2]/table/tbody/tr/td').text
+        self.select_by_text(self.sido_select, sido_text)
+        if sido_text=='세종특별자치시':
+            raise Exception('농사로 토양검정정보에서 세종특별자치시가 저장되지 않았습니다.')
+        else:
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#siGunGuLst > option:nth-child(2)")))
+
+            self.select_by_text(self.sigungu_select, sigungu_text)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#townMyeonDongLst > option:nth-child(2)")))
+
+        self.select_by_text(self.townMyeonDong_select, townMyeonDong_text)
+        if townMyeonDong_text[-1]=='동':
+            pass
+        else:
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#riLst > option:nth-child(2)")))
+
+            self.select_by_text(self.ri_select, ri_text)
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#jibn_tr")))
+
+        self.select_by_text(self.jibn_select, jibn_text)
+#         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#jibun_div")))
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="jibun_div"]/div[4]')))
+
+
+        # address = driver.find_element_by_xpath('//*[@id="jibun_div"]/div[2]/table/tbody/tr/td').text
         aptitude_div = driver.find_element_by_xpath('//*[@id="jibun_div"]/div[4]')
         soup = bs(aptitude_div.get_attribute('innerHTML'), features="html.parser")
     
